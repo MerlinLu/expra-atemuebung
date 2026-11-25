@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5-Minuten Atemübung</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #0f172a;
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .ring {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border: 2px dashed rgba(56, 189, 248, 0.35);
+    border-radius: 50%;
+  }
+  .circle {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, #38bdf8 0%, #0284c7 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(56, 189, 248, 0.4);
+    transform: scale(1);
+    opacity: 0.7;
+    transition-property: transform, opacity;
+    transition-timing-function: ease-in-out;
+  }
+  .timer-display {
+    position: absolute;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    display: none;
+  }
+  .intro-text {
+    max-width: 440px;
+    margin-top: 25px;
+    font-size: 1.1rem;
+    line-height: 1.65;
+    color: #cbd5e1;
+    text-align: justify;
+    hyphens: auto;
+    background: rgba(30, 41, 59, 0.6);
+    padding: 20px 24px;
+    border-radius: 14px;
+    border: 1px solid rgba(56, 189, 248, 0.15);
+  }
+  .instruction {
+    margin-top: 30px;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    min-height: 2.5rem;
+    color: #7dd3fc;
+    text-align: center;
+    display: none;
+  }
+  .progress-wrapper {
+    width: 260px;
+    height: 6px;
+    background-color: rgba(30, 41, 59, 0.9);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 22px;
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    display: none;
+  }
+  .progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #0284c7, #38bdf8);
+    border-radius: 999px;
+  }
+  button {
+    margin-top: 30px;
+    padding: 14px 34px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+    background-color: #38bdf8;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover {
+    background-color: #7dd3fc;
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="ring"></div>
+    <div class="circle" id="circle"></div>
+    <div class="timer-display" id="timerDisplay">4</div>
+  </div>
+
+  <div class="intro-text" id="introText">
+    Bitte folgen Sie den Anweisungen dieser 5-minütigen Atemübung. Atmen Sie nach Möglichkeit durch die Nase ein und durch den Mund aus. Drücken Sie auf Start, sobald Sie soweit sind.
+  </div>
+
+  <div class="instruction" id="instruction"></div>
+
+  <div class="progress-wrapper" id="progressWrapper">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <button id="toggleBtn">Start</button>
+
+  <script>
+    const circle = document.getElementById('circle');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const introText = document.getElementById('introText');
+    const instruction = document.getElementById('instruction');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const progressBar = document.getElementById('progressBar');
+    const toggleBtn = document.getElementById('toggleBtn');
+    
+    const SESSION_DURATION = 300000; // 5 Minuten in Millisekunden
+
+    let isRunning = false;
+    let breathTimer = null;
+    let sessionTimer = null;
+    let counterInterval = null;
+
+    function startEvenCountdown(durationMs, steps) {
+      clearInterval(counterInterval);
+      const stepDuration = durationMs / steps;
+      let currentStep = steps;
+      timerDisplay.textContent = currentStep;
+
+      counterInterval = setInterval(() => {
+        if (!isRunning) {
+          clearInterval(counterInterval);
+          return;
+        }
+        currentStep--;
+        if (currentStep >= 1) {
+          timerDisplay.textContent = currentStep;
+        } else {
+          clearInterval(counterInterval);
+        }
+      }, stepDuration);
+    }
+
+    function inhale() {
+      if (!isRunning) return;
+      instruction.textContent = 'Einatmen';
+      instruction.style.color = '#7dd3fc';
+      circle.style.transitionDuration = '4.5s';
+      circle.style.transform = 'scale(2.6)';
+      circle.style.opacity = '1';
+      
+      // 4 gleichmäßige Schritte à 1,125 Sekunden
+      startEvenCountdown(4500, 4);
+      breathTimer = setTimeout(exhale, 4500);
+    }
+
+    function exhale() {
+      if (!isRunning) return;
+      instruction.textContent = 'Ausatmen';
+      instruction.style.color = '#cbd5e1';
+      circle.style.transitionDuration = '5.5s';
+      circle.style.transform = 'scale(1)';
+      circle.style.opacity = '0.7';
+      
+      // 5 gleichmäßige Schritte à 1,1 Sekunden
+      startEvenCountdown(5500, 5);
+      breathTimer = setTimeout(inhale, 5500);
+    }
+
+    function resetProgressBar() {
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '0%';
+    }
+
+    function startProgressBar() {
+      resetProgressBar();
+      // Erzwingt ein Neuzeichnen (Reflow), damit der Start bei 0% sauber greift
+      void progressBar.offsetWidth;
+      progressBar.style.transition = `width ${SESSION_DURATION}ms linear`;
+      progressBar.style.width = '100%';
+    }
+
+    function stopSession(completed = false) {
+      isRunning = false;
+      clearTimeout(breathTimer);
+      clearTimeout(sessionTimer);
+      clearInterval(counterInterval);
+      
+      timerDisplay.style.display = 'none';
+      circle.style.transitionDuration = '0.8s';
+      circle.style.transform = 'scale(1)';
+      circle.style.opacity = '0.7';
+
+      if (completed) {
+        instruction.textContent = 'Übung beendet';
+        instruction.style.color = '#7dd3fc';
+        toggleBtn.textContent = 'Neu starten';
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '100%';
+      } else {
+        instruction.style.display = 'none';
+        progressWrapper.style.display = 'none';
+        resetProgressBar();
+        introText.style.display = 'block';
+        toggleBtn.textContent = 'Start';
+      }
+    }
+
+    function startSession() {
+      isRunning = true;
+      introText.style.display = 'none';
+      instruction.style.display = 'block';
+      timerDisplay.style.display = 'block';
+      progressWrapper.style.display = 'block';
+      toggleBtn.textContent = 'Abbrechen';
+      
+      startProgressBar();
+      inhale();
+
+      sessionTimer = setTimeout(() => {
+        stopSession(true);
+      }, SESSION_DURATION);
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (isRunning) {
+        stopSession(false);
+      } else {
+        startSession();
+      }
+    });
+  </script>
+
+</body>
+</html>
